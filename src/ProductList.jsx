@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
 import './ProductList.css';
 import CartItem from './CartItem';
 
 function ProductList({ onHomeClick }) {
   const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
 
   const [showCart, setShowCart] = useState(false);
   const [showPlants, setShowPlants] = useState(false);
@@ -48,6 +49,7 @@ function ProductList({ onHomeClick }) {
     }
   ];
 
+  // Ajouter un produit au panier
   const handleAddToCart = (plant) => {
     dispatch(addItem(plant));
     setAddedToCart((prev) => ({
@@ -56,22 +58,35 @@ function ProductList({ onHomeClick }) {
     }));
   };
 
+  // Ouvrir le panier
   const handleCartClick = (e) => {
     e.preventDefault();
     setShowCart(true);
   };
 
+  // Revenir à la liste de produits
   const handleContinueShopping = (e) => {
     e.preventDefault();
     setShowCart(false);
+  };
+
+  // Calculer la quantité totale dans le panier
+  const calculateTotalQuantity = () => {
+    return cartItems
+      ? cartItems.reduce((total, item) => total + item.quantity, 0)
+      : 0;
   };
 
   return (
     <div>
       {/* NAVBAR */}
       <div className="navbar">
-        <h2 onClick={onHomeClick}>Paradise Nursery</h2>
-        <button onClick={handleCartClick}>Cart</button>
+        <h2 onClick={onHomeClick} style={{ cursor: 'pointer' }}>
+          Paradise Nursery
+        </h2>
+        <button onClick={handleCartClick}>
+          Cart ({calculateTotalQuantity()})
+        </button>
       </div>
 
       {/* PAGE PRODUITS */}
@@ -80,7 +95,6 @@ function ProductList({ onHomeClick }) {
           {plantsArray.map((category, index) => (
             <div key={index}>
               <h1>{category.category}</h1>
-
               <div className="product-list">
                 {category.plants.map((plant, plantIndex) => (
                   <div className="product-card" key={plantIndex}>
@@ -89,11 +103,9 @@ function ProductList({ onHomeClick }) {
                       src={plant.image}
                       alt={plant.name}
                     />
-
                     <div className="product-title">{plant.name}</div>
                     <div className="product-description">{plant.description}</div>
                     <div className="product-cost">${plant.cost}</div>
-
                     <button
                       className="product-button"
                       disabled={addedToCart[plant.name]}
